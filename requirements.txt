@@ -1,0 +1,5 @@
+black
+matplotlib
+pandas
+Pillow
+transformers

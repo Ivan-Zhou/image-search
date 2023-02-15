@@ -11,3 +11,15 @@ For example, I installed torch-1.13.1+cu116 torchaudio-0.13.1+cu116 torchvision-
 ```
 pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu116
 ```
+
+## Run a local app
+The local app is a simple web app that allows you to select a dataset and type a query to search:
+
+![Local app](resources/app_screenshot.png)
+
+Before you run the app, make sure you've prepared the dataset and set up the right path with `DATA_DIR` variable in `app/search_app.py`.
+
+You can run the local app by executing the following command:
+```
+sh execute.sh
+```

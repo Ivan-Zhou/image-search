@@ -3,3 +3,6 @@ matplotlib
 pandas
 Pillow
 transformers
+streamlit
+pre-commit
+notebook

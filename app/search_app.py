@@ -1,17 +1,22 @@
 import os
 import pandas as pd
 import streamlit as st
-from clip import CLIP
+from CLIP import CLIP, CLIPOpenAI
 from visualization import read_image
 
 DATA_DIR = "/media/ssd1/ivan/datasets/imagenet_samples/"
+# DATA_DIR = "/Users/lran/Downloads/imagenet_samples/"
+
 DATA_SELECTION = {
     "0010_samples": "0010_samples.csv",
     "0100_samples": "0100_samples.csv",
     "0500_samples": "0500_samples.csv",
     "1000_samples": "1000_samples.csv",
 }
-
+MODEL_SELECTION = {
+    "HuggingFaceCLIP": CLIP(),
+    "OpenAICLIP": CLIPOpenAI(),
+}
 
 def read_csv(csv_name):
     df = pd.read_csv(os.path.join(DATA_DIR, csv_name))
@@ -46,11 +51,15 @@ def show_results(results: list, top_k=3):
 def main():
     st.title("Image Search App")
     st.write("This app finds similar images to your query.")
-    model = CLIP()
     data_selection = st.selectbox(
         label="Dataset",
         options=DATA_SELECTION.keys(),
     )
+    model_selection = st.selectbox(
+        label="Model",
+        options=MODEL_SELECTION.keys(),
+    )
+    model = MODEL_SELECTION[model_selection]
     df = read_csv(DATA_SELECTION[data_selection])
     query = st.text_input('Search Query', 'I was wearing a hat and eating food')
     results = get_results(df, model, query)

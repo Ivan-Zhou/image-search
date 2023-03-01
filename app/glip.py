@@ -1,8 +1,5 @@
 import os
 
-# TODO: better way to import GLIP
-os.chdir("./GLIP")
-
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pylab
 
@@ -18,22 +15,17 @@ pylab.rcParams["figure.figsize"] = 20, 12
 from maskrcnn_benchmark.config import cfg
 from maskrcnn_benchmark.engine.predictor_glip import GLIPDemo
 
-# TODO: better way to import GLIP
-os.chdir("../")
 
-GLIP_DIR = "./GLIP"
+GLIP_DIR = os.path.join(Path(__file__).parent.resolve(), "GLIP")
+assert os.path.exists(GLIP_DIR), f"{GLIP_DIR} directory does not exist"
 WEIGHT_PATH = os.path.join(GLIP_DIR, "MODEL/glip_tiny_model_o365_goldg_cc_sbu.pth")
 CONFIG_FILE = os.path.join(GLIP_DIR, "configs/pretrain/glip_Swin_T_O365_GoldG.yaml")
 REMOTE_PATH = "https://penzhanwu2bbs.blob.core.windows.net/data/GLIPv1_Open/models/glip_tiny_model_o365_goldg_cc_sbu.pth"
-if not os.path.exists(WEIGHT_PATH):
-    Path(WEIGHT_PATH).parent.mkdir(parents=True, exist_ok=True)
-    print("Downloading weights...")
-    os.system(f"wget {REMOTE_PATH} -O {WEIGHT_PATH}")
-    print("Done!")
 
 
 class GLIP:
     def __init__(self) -> None:
+        self._download_weight()
         self._init_cfg(cfg)
         self._check_gpu()
         self._init_glip_model()
@@ -45,6 +37,11 @@ class GLIP:
         self.cfg.merge_from_file(CONFIG_FILE)
         self.cfg.merge_from_list(["MODEL.WEIGHT", WEIGHT_PATH])
         self.cfg.merge_from_list(["MODEL.DEVICE", "cuda"])
+
+    def _download_weight(self):
+        if not os.path.exists(WEIGHT_PATH):
+            Path(WEIGHT_PATH).parent.mkdir(parents=True, exist_ok=True)
+            os.system(f"wget {REMOTE_PATH} -O {WEIGHT_PATH}")
 
     def _check_gpu(self):
         try:
@@ -73,6 +70,8 @@ class GLIP:
         print("Time: {}".format(time() - start))
 
     def predict(self, image, query, debug=False):
+        if len(image.shape) == 2:
+            image = np.stack([image] * 3, axis=-1)
         predictions = self.glip_model.inference(image, query)
         bboxes = predictions.bbox.tolist()
         scores = predictions.get_field("scores").tolist()

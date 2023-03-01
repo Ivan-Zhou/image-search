@@ -36,7 +36,7 @@ class GLIP:
     def __init__(self) -> None:
         self._init_cfg(cfg)
         self._check_gpu()
-        self._init_glip_demo()
+        self._init_glip_model()
 
     def _init_cfg(self, cfg):
         self.cfg = cfg
@@ -61,10 +61,10 @@ class GLIP:
         except Exception as e:
             raise ValueError("Fail to check GPU info due to {}".format(e))
 
-    def _init_glip_demo(self):
-        print("Initializing GLIP Demo...")
+    def _init_glip_model(self):
+        print("Initializing GLIP Model...")
         start = time()
-        self.glip_demo = GLIPDemo(
+        self.glip_model = GLIPDemo(
             self.cfg,
             min_image_size=800,
             confidence_threshold=0.7,
@@ -73,7 +73,7 @@ class GLIP:
         print("Time: {}".format(time() - start))
 
     def predict(self, image, query, debug=False):
-        predictions = self.glip_demo.inference(image, query)
+        predictions = self.glip_model.inference(image, query)
         bboxes = predictions.bbox.tolist()
         scores = predictions.get_field("scores").tolist()
         labels = predictions.get_field("labels").tolist()
@@ -110,4 +110,3 @@ if __name__ == "__main__":
         "person with two sofa and a remote controller besides the shelf",
         debug=True,
     )
-    print(bboxes, scores, classes)

@@ -22,7 +22,6 @@ $ conda install -c conda-forge faiss-cpu
 
 # GPU version
 $ conda install -c conda-forge faiss-gpu
->>>>>>> main
 ```
 
 ### Install GLIP

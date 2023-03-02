@@ -29,6 +29,12 @@ $ conda install -c conda-forge faiss-gpu
 Pull the submodule:
 ```
 git submodule update --init --recursive
+```
+
+Install dependencies and build the package:
+```
+sh .install_glip.sh
+```
 
 ## Run a local app
 The local app is a simple web app that allows you to select a dataset and type a query to search:

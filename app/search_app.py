@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import streamlit as st
 from typing import List
-from clip import CLIP, CLIPOpenAI
+from clip_model import CLIP, CLIPOpenAI
 try:
     from glip import GLIP
     imported_glip = True
@@ -52,6 +52,7 @@ def get_results(df, clip_model, glip_model, query, score_thresh=20.0, top_k=3) -
             glip_prediction = glip_model.predict(image, query)
         else:
             glip_prediction = None
+        print(f"glip_prediction = {glip_prediction}")
         result = Result(image, row["score"], glip_prediction)
         results.append(result)
     return results
@@ -64,7 +65,13 @@ def show_results(results: List[Result], time_elapsed, top_k=3):
     for result in results:
         image = result.image
         if result.glip_prediction is not None:
-            pass
+            print("Showing bounding boxes")
+            image = plot_bboxes(
+                image=image,
+                bboxes=result.glip_prediction.bboxes,
+                scores=result.glip_prediction.scores,
+                labels=result.glip_prediction.labels,
+            )
         caption = f"Score {result.score:.2f}"
         st.image(
             image,
@@ -95,7 +102,7 @@ def main():
     glip_model = GLIP() if use_glip else None
     start_time = datetime.now()
     query = st.text_input(
-        'Search Query', 'I was wearing a hat and eating food')
+        'Search Query', 'a roasted chicken')
     results = get_results(df, clip_model, glip_model, query)
     time_elapsed = datetime.now() - start_time
 

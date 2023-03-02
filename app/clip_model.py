@@ -11,8 +11,7 @@ from visualization import read_image
 class CLIP:
     def __init__(self):
         self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-        self.processor = CLIPProcessor.from_pretrained(
-            "openai/clip-vit-base-patch32")
+        self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
     def get_similarity_scores(self, image_paths, query):
         # https://huggingface.co/docs/transformers/model_doc/clip#usage
@@ -20,7 +19,8 @@ class CLIP:
         for i, image_path in enumerate(image_paths):
             image = read_image(image_path)
             inputs = self.processor(
-                text=[query], images=image, return_tensors="pt", padding=True)
+                text=[query], images=image, return_tensors="pt", padding=True
+            )
             outputs = self.model(**inputs)
             # this is the image-text similarity score
             logits_per_image = outputs.logits_per_image
@@ -28,8 +28,9 @@ class CLIP:
             scores[i] = score
         return scores
 
+
 # OpenAI CLIP model
-class CLIPOpenAI():
+class CLIPOpenAI:
     def __init__(self, index_lookup_file=None):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model, self.preprocess = openai_clip.load("ViT-B/32", device=self.device)
@@ -41,12 +42,11 @@ class CLIPOpenAI():
             df = pd.read_csv(self.index_lookup_file)
             image_features = []
             for image_path in image_paths:
-                selected_row = df.loc[df['image_path'] == image_path].iloc[0]
-                saved_path = selected_row['index_path']
+                selected_row = df.loc[df["image_path"] == image_path].iloc[0]
+                saved_path = selected_row["index_path"]
                 img_feature = torch.load(saved_path)
                 image_features.append(img_feature)
-            image_features = torch.stack(
-                image_features).squeeze(1).to(self.device)
+            image_features = torch.stack(image_features).squeeze(1).to(self.device)
 
         else:
             # Calculate image features from scratch.

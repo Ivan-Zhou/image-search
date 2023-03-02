@@ -1,11 +1,12 @@
 import cv2
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 from PIL import Image
 
 
 def read_image(path):
-    return Image.open(path)
+    return np.array(Image.open(path).convert("RGB"))
 
 
 def plot_image(path, title=None):

@@ -20,9 +20,9 @@ DATA_SELECTION = {
     "1000_samples": "1000_samples.csv",
 }
 MODEL_SELECTION = {
+    "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
     "HuggingFaceCLIP": CLIP(),
     "OpenAICLIP": CLIPOpenAI(),
-    "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
 }
 
 class Result:
@@ -52,7 +52,6 @@ def get_results(df, clip_model, glip_model, query, score_thresh=20.0, top_k=3) -
             glip_prediction = glip_model.predict(image, query)
         else:
             glip_prediction = None
-        print(f"glip_prediction = {glip_prediction}")
         result = Result(image, row["score"], glip_prediction)
         results.append(result)
     return results
@@ -65,7 +64,6 @@ def show_results(results: List[Result], time_elapsed, top_k=3):
     for result in results:
         image = result.image
         if result.glip_prediction is not None:
-            print("Showing bounding boxes")
             image = plot_bboxes(
                 image=image,
                 bboxes=result.glip_prediction.bboxes,
@@ -95,10 +93,10 @@ def main():
         label="Model",
         options=MODEL_SELECTION.keys(),
     )
-    if imported_glip:
-        use_glip = st.checkbox("Use GLIP", value=False)
     clip_model = MODEL_SELECTION[model_selection]
     df = read_csv(DATA_SELECTION[data_selection])
+    if imported_glip:
+        use_glip = st.checkbox("Use GLIP", value=True)
     glip_model = GLIP() if use_glip else None
     start_time = datetime.now()
     query = st.text_input(

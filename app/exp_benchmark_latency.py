@@ -63,6 +63,7 @@ class BenchmarkLatency:
     def _read_queries(self, query_file="resources/queries.txt"):
         with open(query_file, "r") as f:
             queries = f.readlines()
+        queries = queries[: self.n_queries]
         print(f"Read {len(queries)} queries from {query_file}")
         return queries
 
@@ -71,7 +72,7 @@ class BenchmarkLatency:
         for model_name, model_config in self.models.items():
             model = model_config["model"](*model_config["args"])
             print(f"Running benchmark for {model_name}...")
-            for query in self.queries[:3]:
+            for query in self.queries:
                 start = datetime.now()
                 for _ in range(self.n_runs):
                     try:

@@ -68,6 +68,6 @@ class CLIPOpenAI():
             text_features = self.model.encode_text(text_tokens).float()
         text_features /= text_features.norm(dim=-1, keepdim=True)
 
-        similarity = text_features.cpu().numpy() @ image_features.cpu().numpy().T
+        similarity = text_features @ image_features.T
         # Shape (N, )
         return np.squeeze(similarity) * 100

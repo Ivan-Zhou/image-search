@@ -18,6 +18,7 @@ MODEL_SELECTION = {
     "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
 }
 
+
 def read_csv(csv_name):
     df = pd.read_csv(os.path.join(DATA_DIR, csv_name))
     df["image_path"] = df["image_path"].apply(
@@ -71,6 +72,7 @@ def main():
     time_elapsed = datetime.now() - start_time
 
     show_results(results, time_elapsed.total_seconds())
+
 
 if __name__ == "__main__":
     main()

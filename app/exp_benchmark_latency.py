@@ -14,13 +14,24 @@ from constants import DATA_DIR, INDEX_LOOKUP_FILE
 
 
 class BenchmarkLatency:
-    def __init__(self) -> None:
+    def __init__(self, n_queries, n_runs) -> None:
+        self.n_queries = n_queries
+        self.n_runs = n_runs
         self.image_df = self._read_csv()
         self.queries = self._read_queries()
         self.models = {
-            "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
-            "HuggingFaceCLIP": CLIP(),
-            "OpenAICLIP": CLIPOpenAI(),
+            "OpenAICLIP-FasterImage": {
+                "model": CLIPOpenAI,
+                "args": [INDEX_LOOKUP_FILE],
+            },
+            "OpenAICLIP": {
+                "model": CLIPOpenAI,
+                "args": [],
+            },
+            "HuggingFaceCLIP": {
+                "model": CLIP,
+                "args": [],
+            }
         }
         self.data = []
         self.output_file = "latency_benchmark.csv"
@@ -37,19 +48,25 @@ class BenchmarkLatency:
         print(f"Read {len(queries)} queries from {query_file}")
         return queries
 
-    def run(self, n=2):
-        for model_name, model in self.models.items():
+    def run(self):
+        n_images = len(self.image_df)
+        for model_name, model_config in self.models.items():
+            model = model_config["model"](*model_config["args"])
             print(f"Running benchmark for {model_name}...")
             for query in self.queries[:3]:
-                for _ in range(n):
-                    start = datetime.now()
-                    model.get_similarity_scores(self.image_df["image_path"].values, query)
-                    time = datetime.now() - start
-                    self._record(model_name, query, time)
+                start = datetime.now()
+                self._run_model(model, query)
+                time = (datetime.now() - start).total_seconds()
+                time_per_image = time / (n_images * self.n_runs)
+                self._record(model_name, query, time_per_image)
             print(f"Finished benchmark for {model_name}...")
 
+    def _run_model(self, model, query):
+        for _ in range(self.n_runs):
+            model.get_similarity_scores(self.image_df["image_path"].values, query)
 
     def _record(self, model_name, query, time):
+        query = query.replace("\n", "")
         self.data.append(
             {
                 "model": model_name,
@@ -63,9 +80,9 @@ class BenchmarkLatency:
         df.to_csv(self.output_file, index=False)
         print(f"Saved {len(df)} results to {self.output_file}")
 
-def main():
+def main(n_queries=10, n_runs=2):
     print("Benchmarking latency...")
-    benchmark = BenchmarkLatency()
+    benchmark = BenchmarkLatency(n_queries=n_queries, n_runs=n_runs)
     benchmark.run()
     benchmark.save()
 

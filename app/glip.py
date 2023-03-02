@@ -30,6 +30,7 @@ class GLIPPrediction:
         self.labels = labels
         self.n = len(bboxes)
 
+
 class GLIP:
     def __init__(self) -> None:
         self._download_weight()
@@ -95,6 +96,7 @@ class GLIP:
             print(f"classes: {classes}")
         prediction = GLIPPrediction(bboxes, scores, classes)
         return prediction
+
 
 def load(url):
     """

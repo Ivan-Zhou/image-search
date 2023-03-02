@@ -3,8 +3,10 @@ import pandas as pd
 import streamlit as st
 from typing import List
 from clip_model import CLIP, CLIPOpenAI
+
 try:
     from glip import GLIP
+
     imported_glip = True
 except Exception as e:
     print("Failed to import GLIP due to {}".format(e))
@@ -14,23 +16,24 @@ from datetime import datetime
 from constants import DATA_DIR, INDEX_LOOKUP_FILE
 
 
-if 'DATA_SELECTION' not in st.session_state:
-    st.session_state['DATA_SELECTION'] = {
+if "DATA_SELECTION" not in st.session_state:
+    st.session_state["DATA_SELECTION"] = {
         "0010_samples": "0010_samples.csv",
         "0100_samples": "0100_samples.csv",
         "0500_samples": "0500_samples.csv",
         "1000_samples": "1000_samples.csv",
     }
 
-if 'MODEL_SELECTION' not in st.session_state:
-    st.session_state['MODEL_SELECTION'] = {
+if "MODEL_SELECTION" not in st.session_state:
+    st.session_state["MODEL_SELECTION"] = {
         "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
         "HuggingFaceCLIP": CLIP(),
         "OpenAICLIP": CLIPOpenAI(),
     }
 
 if "GLIP_MODEL" not in st.session_state:
-    st.session_state['GLIP_MODEL'] = GLIP() if imported_glip else None
+    st.session_state["GLIP_MODEL"] = GLIP() if imported_glip else None
+
 
 class Result:
     def __init__(self, image, score, glip_prediction=None) -> None:
@@ -41,12 +44,13 @@ class Result:
 
 def read_csv(csv_name):
     df = pd.read_csv(os.path.join(DATA_DIR, csv_name))
-    df["image_path"] = df["image_path"].apply(
-        lambda x: os.path.join(DATA_DIR, x))
+    df["image_path"] = df["image_path"].apply(lambda x: os.path.join(DATA_DIR, x))
     return df
 
 
-def get_results(df, clip_model, glip_model, query, score_thresh=20.0, top_k=3) -> List[Result]:
+def get_results(
+    df, clip_model, glip_model, query, score_thresh=20.0, top_k=3
+) -> List[Result]:
     results = []
     # use CLIP model to get similarity scores and pick the top_k
     df["score"] = clip_model.get_similarity_scores(df["image_path"].values, query)
@@ -67,7 +71,8 @@ def get_results(df, clip_model, glip_model, query, score_thresh=20.0, top_k=3) -
 def show_results(results: List[Result], time_elapsed, top_k=3):
     top_k = min(top_k, len(results))
     st.write(
-        f"Found {len(results)} results in {time_elapsed:.2f} seconds. Showing top {top_k} results below:")
+        f"Found {len(results)} results in {time_elapsed:.2f} seconds. Showing top {top_k} results below:"
+    )
     for result in results:
         image = result.image
         if result.glip_prediction is not None:
@@ -94,18 +99,17 @@ def main():
     st.write("This app finds similar images to your query.")
     data_selection = st.selectbox(
         label="Dataset",
-        options=st.session_state['DATA_SELECTION'].keys(),
+        options=st.session_state["DATA_SELECTION"].keys(),
     )
     model_selection = st.selectbox(
         label="Model",
-        options=st.session_state['MODEL_SELECTION'].keys(),
+        options=st.session_state["MODEL_SELECTION"].keys(),
     )
-    clip_model = st.session_state['MODEL_SELECTION'][model_selection]
-    df = read_csv(st.session_state['DATA_SELECTION'][data_selection])
-    glip_model = st.session_state['GLIP_MODEL']
+    clip_model = st.session_state["MODEL_SELECTION"][model_selection]
+    df = read_csv(st.session_state["DATA_SELECTION"][data_selection])
+    glip_model = st.session_state["GLIP_MODEL"]
     start_time = datetime.now()
-    query = st.text_input(
-        'Search Query', 'a roasted chicken')
+    query = st.text_input("Search Query", "a roasted chicken")
     results = get_results(df, clip_model, glip_model, query)
     time_elapsed = datetime.now() - start_time
 

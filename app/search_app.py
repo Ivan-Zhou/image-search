@@ -6,17 +6,21 @@ from visualization import read_image
 from datetime import datetime
 from constants import DATA_DIR, INDEX_LOOKUP_FILE
 
-DATA_SELECTION = {
-    "0010_samples": "0010_samples.csv",
-    "0100_samples": "0100_samples.csv",
-    "0500_samples": "0500_samples.csv",
-    "1000_samples": "1000_samples.csv",
-}
-MODEL_SELECTION = {
-    "HuggingFaceCLIP": CLIP(),
-    "OpenAICLIP": CLIPOpenAI(),
-    "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
-}
+
+if 'DATA_SELECTION' not in st.session_state:
+    st.session_state['DATA_SELECTION'] = {
+        "0010_samples": "0010_samples.csv",
+        "0100_samples": "0100_samples.csv",
+        "0500_samples": "0500_samples.csv",
+        "1000_samples": "1000_samples.csv",
+    }
+
+if 'MODEL_SELECTION' not in st.session_state:
+    st.session_state['MODEL_SELECTION'] = {
+        "HuggingFaceCLIP": CLIP(),
+        "OpenAICLIP": CLIPOpenAI(),
+        "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
+    }
 
 
 def read_csv(csv_name):
@@ -56,14 +60,14 @@ def main():
     st.write("This app finds similar images to your query.")
     data_selection = st.selectbox(
         label="Dataset",
-        options=DATA_SELECTION.keys(),
+        options=st.session_state['DATA_SELECTION'].keys(),
     )
     model_selection = st.selectbox(
         label="Model",
-        options=MODEL_SELECTION.keys(),
+        options=st.session_state['MODEL_SELECTION'].keys(),
     )
-    model = MODEL_SELECTION[model_selection]
-    df = read_csv(DATA_SELECTION[data_selection])
+    model = st.session_state['MODEL_SELECTION'][model_selection]
+    df = read_csv(st.session_state['DATA_SELECTION'][data_selection])
 
     start_time = datetime.now()
     query = st.text_input(

@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-import clip
+import clip as openai_clip
 import pandas as pd
 from PIL import Image
 from transformers import CLIPProcessor, CLIPModel
@@ -32,7 +32,7 @@ class CLIP:
 class CLIPOpenAI():
     def __init__(self, index_lookup_file=None):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model, self.preprocess = clip.load("ViT-B/32", device=self.device)
+        self.model, self.preprocess = openai_clip.load("ViT-B/32", device=self.device)
         self.index_lookup_file = index_lookup_file
 
     def get_similarity_scores(self, image_paths, query):
@@ -62,7 +62,7 @@ class CLIPOpenAI():
                 image_features = self.model.encode_image(image_input).float()
             image_features /= image_features.norm(dim=-1, keepdim=True)
 
-        text_tokens = clip.tokenize([query]).to(self.device)
+        text_tokens = openai_clip.tokenize([query]).to(self.device)
         with torch.no_grad():
             # torch.Size([1, 512])
             text_features = self.model.encode_text(text_tokens).float()

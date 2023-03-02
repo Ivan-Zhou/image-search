@@ -13,17 +13,24 @@ from visualization import read_image, plot_bboxes
 from datetime import datetime
 from constants import DATA_DIR, INDEX_LOOKUP_FILE
 
-DATA_SELECTION = {
-    "0010_samples": "0010_samples.csv",
-    "0100_samples": "0100_samples.csv",
-    "0500_samples": "0500_samples.csv",
-    "1000_samples": "1000_samples.csv",
-}
-MODEL_SELECTION = {
-    "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
-    "HuggingFaceCLIP": CLIP(),
-    "OpenAICLIP": CLIPOpenAI(),
-}
+
+if 'DATA_SELECTION' not in st.session_state:
+    st.session_state['DATA_SELECTION'] = {
+        "0010_samples": "0010_samples.csv",
+        "0100_samples": "0100_samples.csv",
+        "0500_samples": "0500_samples.csv",
+        "1000_samples": "1000_samples.csv",
+    }
+
+if 'MODEL_SELECTION' not in st.session_state:
+    st.session_state['MODEL_SELECTION'] = {
+        "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
+        "HuggingFaceCLIP": CLIP(),
+        "OpenAICLIP": CLIPOpenAI(),
+    }
+
+if "GLIP_MODEL" not in st.session_state:
+    st.session_state['GLIP_MODEL'] = GLIP() if imported_glip else None
 
 class Result:
     def __init__(self, image, score, glip_prediction=None) -> None:
@@ -87,17 +94,15 @@ def main():
     st.write("This app finds similar images to your query.")
     data_selection = st.selectbox(
         label="Dataset",
-        options=DATA_SELECTION.keys(),
+        options=st.session_state['DATA_SELECTION'].keys(),
     )
     model_selection = st.selectbox(
         label="Model",
-        options=MODEL_SELECTION.keys(),
+        options=st.session_state['MODEL_SELECTION'].keys(),
     )
-    clip_model = MODEL_SELECTION[model_selection]
-    df = read_csv(DATA_SELECTION[data_selection])
-    if imported_glip:
-        use_glip = st.checkbox("Use GLIP", value=True)
-    glip_model = GLIP() if use_glip else None
+    clip_model = st.session_state['MODEL_SELECTION'][model_selection]
+    df = read_csv(st.session_state['DATA_SELECTION'][data_selection])
+    glip_model = st.session_state['GLIP_MODEL']
     start_time = datetime.now()
     query = st.text_input(
         'Search Query', 'a roasted chicken')
@@ -105,6 +110,7 @@ def main():
     time_elapsed = datetime.now() - start_time
 
     show_results(results, time_elapsed.total_seconds())
+
 
 if __name__ == "__main__":
     main()

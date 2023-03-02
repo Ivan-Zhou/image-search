@@ -16,9 +16,10 @@ def get_index_path(full_image_path):
         INDEX_DIR, os.path.splitext(image_base_filename)[0]) + ".pt"
     return index_path
 
-# Pre-compute features for all images inside IMAGE_DIR. 
+# Pre-compute features for all images inside IMAGE_DIR.
 # Results are stored in INDEX_DIR as torch.Tensor.
 # Image file path -> Index file path mapping is stored in INDEX_LOOKUP_FILE.
+
 
 def main():
     IMAGE_DIR = os.path.join(DATA_DIR, 'images')

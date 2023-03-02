@@ -1,8 +1,15 @@
 import os
 import pandas as pd
 import streamlit as st
-from CLIP import CLIP, CLIPOpenAI
-from visualization import read_image
+from typing import List
+from clip import CLIP, CLIPOpenAI
+try:
+    from glip import GLIP
+    imported_glip = True
+except Exception as e:
+    print("Failed to import GLIP due to {}".format(e))
+    imported_glip = False
+from visualization import read_image, plot_bboxes
 from datetime import datetime
 from constants import DATA_DIR, INDEX_LOOKUP_FILE
 
@@ -18,6 +25,13 @@ MODEL_SELECTION = {
     "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
 }
 
+class Result:
+    def __init__(self, image, score, glip_prediction=None) -> None:
+        self.image = image
+        self.score = score
+        self.glip_prediction = glip_prediction
+
+
 def read_csv(csv_name):
     df = pd.read_csv(os.path.join(DATA_DIR, csv_name))
     df["image_path"] = df["image_path"].apply(
@@ -25,20 +39,33 @@ def read_csv(csv_name):
     return df
 
 
-def get_results(df, model, query, score_thresh=20.0) -> list:
-    df["score"] = model.get_similarity_scores(df["image_path"].values, query)
+def get_results(df, clip_model, glip_model, query, score_thresh=20.0, top_k=3) -> List[Result]:
+    results = []
+    # use CLIP model to get similarity scores and pick the top_k
+    df["score"] = clip_model.get_similarity_scores(df["image_path"].values, query)
     df = df.sort_values("score", ascending=False)
-    df = df[df["score"] > score_thresh]
-    return df[["image_path", "score"]].to_dict(orient="records")
+    df = df[df["score"] > score_thresh][:3]
+    # use GLIP model to get bounding boxes
+    for _, row in df.iterrows():
+        image = read_image(row["image_path"])
+        if glip_model is not None:
+            glip_prediction = glip_model.predict(image, query)
+        else:
+            glip_prediction = None
+        result = Result(image, row["score"], glip_prediction)
+        results.append(result)
+    return results
 
 
-def show_results(results: list, time_elapsed, top_k=3):
+def show_results(results: List[Result], time_elapsed, top_k=3):
     top_k = min(top_k, len(results))
     st.write(
         f"Found {len(results)} results in {time_elapsed:.2f} seconds. Showing top {top_k} results below:")
     for result in results:
-        image = read_image(result["image_path"])
-        caption = f"Score {result['score']:.2f}"
+        image = result.image
+        if result.glip_prediction is not None:
+            pass
+        caption = f"Score {result.score:.2f}"
         st.image(
             image,
             caption=caption,
@@ -61,13 +88,15 @@ def main():
         label="Model",
         options=MODEL_SELECTION.keys(),
     )
-    model = MODEL_SELECTION[model_selection]
+    if imported_glip:
+        use_glip = st.checkbox("Use GLIP", value=False)
+    clip_model = MODEL_SELECTION[model_selection]
     df = read_csv(DATA_SELECTION[data_selection])
-
+    glip_model = GLIP() if use_glip else None
     start_time = datetime.now()
     query = st.text_input(
         'Search Query', 'I was wearing a hat and eating food')
-    results = get_results(df, model, query)
+    results = get_results(df, clip_model, glip_model, query)
     time_elapsed = datetime.now() - start_time
 
     show_results(results, time_elapsed.total_seconds())

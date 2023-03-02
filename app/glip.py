@@ -23,6 +23,13 @@ CONFIG_FILE = os.path.join(GLIP_DIR, "configs/pretrain/glip_Swin_T_O365_GoldG.ya
 REMOTE_PATH = "https://penzhanwu2bbs.blob.core.windows.net/data/GLIPv1_Open/models/glip_tiny_model_o365_goldg_cc_sbu.pth"
 
 
+class GLIPPrediction:
+    def __init__(self, bboxes, scores, labels) -> None:
+        self.bboxes = bboxes
+        self.scores = scores
+        self.labels = labels
+        self.n = len(bboxes)
+
 class GLIP:
     def __init__(self) -> None:
         self._download_weight()
@@ -69,7 +76,7 @@ class GLIP:
         )
         print("Time: {}".format(time() - start))
 
-    def predict(self, image, query, debug=False):
+    def predict(self, image, query, debug=False) -> GLIPPrediction:
         if len(image.shape) == 2:
             image = np.stack([image] * 3, axis=-1)
         predictions = self.glip_model.inference(image, query)
@@ -86,8 +93,8 @@ class GLIP:
         classes = [class_names[label - 1] for label in labels]
         if debug:
             print(f"classes: {classes}")
-        return bboxes, scores, classes
-
+        prediction = GLIPPrediction(bboxes, scores, classes)
+        return prediction
 
 def load(url):
     """
@@ -104,7 +111,7 @@ def load(url):
 if __name__ == "__main__":
     glip = GLIP()
     image = load("http://farm4.staticflickr.com/3693/9472793441_b7822c00de_z.jpg")
-    bboxes, scores, classes = glip.predict(
+    predictions = glip.predict(
         image,
         "person with two sofa and a remote controller besides the shelf",
         debug=True,

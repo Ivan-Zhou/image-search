@@ -1,0 +1,3 @@
+[submodule "app/GLIP"]
+	path = app/GLIP
+	url = git@github.com:Ivan-Zhou/GLIP.git

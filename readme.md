@@ -12,7 +12,7 @@ For example, I installed torch-1.13.1+cu116 torchaudio-0.13.1+cu116 torchvision-
 pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu116
 ```
 
-Install faiss from conda-forge ([details](https://github.com/facebookresearch/faiss/blob/main/INSTALL.md#installing-from-conda-forge)) for faster vector distance search. 
+Install faiss from conda-forge ([details](https://github.com/facebookresearch/faiss/blob/main/INSTALL.md#installing-from-conda-forge)) for faster vector distance search.
 
 **Note: Feel free to skip this installation. Still exploring. Not in the current implementation.**
 
@@ -22,6 +22,17 @@ $ conda install -c conda-forge faiss-cpu
 
 # GPU version
 $ conda install -c conda-forge faiss-gpu
+```
+
+### Install GLIP
+Pull the submodule:
+```
+git submodule update --init --recursive
+```
+
+Install dependencies and build the package:
+```
+sh .install_glip.sh
 ```
 
 ## Run a local app

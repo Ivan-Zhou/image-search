@@ -9,4 +9,5 @@ notebook
 ftfy
 regex
 tqdm
+fire
 git+https://github.com/openai/CLIP.git

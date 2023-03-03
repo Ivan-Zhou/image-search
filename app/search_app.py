@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import streamlit as st
 from typing import List
-from clip_model import CLIP, CLIPOpenAI
+from clip_model import CLIP, CLIPOpenAI, CLIPOpenAIFaiss
 
 try:
     from glip import GLIP
@@ -27,8 +27,9 @@ if "DATA_SELECTION" not in st.session_state:
 if "MODEL_SELECTION" not in st.session_state:
     st.session_state["MODEL_SELECTION"] = {
         "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
-        "HuggingFaceCLIP": CLIP(),
-        "OpenAICLIP": CLIPOpenAI(),
+        # "HuggingFaceCLIP": CLIP(),
+        # "OpenAICLIP": CLIPOpenAI(),
+        "OpenAICLIP-FasterImage+FAISS": CLIPOpenAIFaiss(INDEX_LOOKUP_FILE, None, k_neighbors=5)
     }
 
 if "GLIP_MODEL" not in st.session_state:
@@ -53,11 +54,11 @@ def get_results(
 ) -> List[Result]:
     results = []
     # use CLIP model to get similarity scores and pick the top_k
-    df["score"] = clip_model.get_similarity_scores(df["image_path"].values, query)
-    df = df.sort_values("score", ascending=False)
-    df = df[df["score"] > score_thresh][:3]
+    df_output = clip_model.get_similarity_scores(df["image_path"].values, query)
+    df_output = df_output.sort_values("score", ascending=False)
+    df_output = df_output[df_output["score"] > score_thresh][:3]
     # use GLIP model to get bounding boxes
-    for _, row in df.iterrows():
+    for _, row in df_output.iterrows():
         image = read_image(row["image_path"])
         if glip_model is not None:
             glip_prediction = glip_model.predict(image, query)
@@ -71,7 +72,7 @@ def get_results(
 def show_results(results: List[Result], time_elapsed, top_k=3):
     top_k = min(top_k, len(results))
     st.write(
-        f"Found {len(results)} results in {time_elapsed:.2f} seconds. Showing top {top_k} results below:"
+        f"Found {len(results)} results in {time_elapsed:.2f} seconds. Showing top {top_k} results below: " 
     )
     for result in results:
         image = result.image

@@ -56,8 +56,9 @@ sh execute.sh
 ## Performance Findings
 
 
-| Model                     | Search Time (sec) | Image Sample Size | Device            |
-| ------------------------- | ----------------- | ----------------- | ----------------- |
-| HuggingFace CLIP          | 6.49              | 100               | MacBook Pro - CPU |
-| OpenAI CLIP               | 3.35              | 100               | MacBook Pro - CPU |
-| OpenAI CLIP - FasterImage | 0.4               | 100               | MacBook Pro - CPU |
+| Model                           | Search Time (sec) | Image Sample Size | Device            |
+| ------------------------------- | ----------------- | ----------------- | ----------------- |
+| HuggingFace CLIP                | 6.49              | 100               | MacBook Pro - CPU |
+| OpenAI CLIP                     | 3.35              | 100               | MacBook Pro - CPU |
+| OpenAI CLIP - FasterImage       | 0.4               | 100               | MacBook Pro - CPU |
+| OpenAI CLIP - FasterImage+FAISS | 0.05              | 100               | MacBook Pro - CPU |

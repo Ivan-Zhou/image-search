@@ -3,7 +3,7 @@ import fire
 import os
 import pandas as pd
 
-from clip_model import CLIP, CLIPOpenAI
+from clip_model import CLIP, CLIPOpenAI, CLIPOpenAIFaiss
 
 try:
     from glip import GLIP
@@ -31,6 +31,10 @@ class BenchmarkLatency:
         self.n_runs = n_runs
         self.queries = self._read_queries()
         self.models = {
+            "OpenAICLIP-FasterImage+FAISS": {
+                "model": CLIPOpenAIFaiss,
+                "args": [INDEX_LOOKUP_FILE, None, 5],
+            },
             "OpenAICLIP-FasterImage": {
                 "model": CLIPOpenAI,
                 "args": [INDEX_LOOKUP_FILE],

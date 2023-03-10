@@ -41,20 +41,20 @@ class BenchmarkLatency:
                 "model": CLIPOpenAI,
                 "args": [INDEX_LOOKUP_FILE],
             },
-            # "OpenAICLIP": {
-            #     "model": CLIPOpenAI,
-            #     "args": [],
-            # },
-            # "HuggingFaceCLIP": {
-            #     "model": CLIP,
-            #     "args": [],
-            # },
+            "OpenAICLIP": {
+                "model": CLIPOpenAI,
+                "args": [],
+            },
+            "HuggingFaceCLIP": {
+                "model": CLIP,
+                "args": [],
+            },
         }
-        # if imported_glip:
-        #     self.models["GLIP"] = {
-        #         "model": GLIP,
-        #         "args": [],
-        #     }
+        if imported_glip:
+            self.models["GLIP"] = {
+                "model": GLIP,
+                "args": [],
+            }
         self.data = []
         self.output_file = "latency_benchmark.csv"
 

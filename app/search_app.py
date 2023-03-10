@@ -32,8 +32,8 @@ if "MODEL_SELECTION" not in st.session_state:
             INDEX_LOOKUP_FILE, None, k_neighbors=5
         ),
         "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
-        # "HuggingFaceCLIP": CLIP(),
-        # "OpenAICLIP": CLIPOpenAI(),
+        "HuggingFaceCLIP": CLIP(),
+        "OpenAICLIP": CLIPOpenAI(),
     }
 
 if "GLIP_MODEL" not in st.session_state:
@@ -54,22 +54,26 @@ def read_csv(csv_name):
 
 
 def get_results(
-    df, clip_model, glip_model, query, score_thresh=15.0, top_k=5
+    df, clip_model, glip_model, query, score_thresh=20.0, top_k=5
 ) -> List[Result]:
     results = []
     # use CLIP model to get similarity scores and pick the top_k
     df_output = clip_model.get_similarity_scores(df["image_path"].values, query)
     df_output = df_output.sort_values("score", ascending=False)
-    df_output = df_output[df_output["score"] > score_thresh][:top_k]
+    df_output = df_output[df_output["score"] > score_thresh]
     # use GLIP model to get bounding boxes
     for _, row in df_output.iterrows():
         image = read_image(row["image_path"])
         if glip_model is not None:
             glip_prediction = glip_model.predict(image, query)
+            if glip_prediction.n == 0:
+                continue
         else:
             glip_prediction = None
         result = Result(image, row["score"], glip_prediction)
         results.append(result)
+        if len(results) >= top_k:
+            break
     return results
 
 

@@ -22,14 +22,18 @@ if "DATA_SELECTION" not in st.session_state:
         "0100_samples": "0100_samples.csv",
         "0500_samples": "0500_samples.csv",
         "1000_samples": "1000_samples.csv",
+        "5000_samples": "05000_samples.csv",
+        "10000_samples": "10000_samples.csv",
     }
 
 if "MODEL_SELECTION" not in st.session_state:
     st.session_state["MODEL_SELECTION"] = {
+        "OpenAICLIP-FasterImage+FAISS": CLIPOpenAIFaiss(
+            INDEX_LOOKUP_FILE, None, k_neighbors=5
+        ),
         "OpenAICLIP-FasterImage": CLIPOpenAI(INDEX_LOOKUP_FILE),
-        # "HuggingFaceCLIP": CLIP(),
-        # "OpenAICLIP": CLIPOpenAI(),
-        "OpenAICLIP-FasterImage+FAISS": CLIPOpenAIFaiss(INDEX_LOOKUP_FILE, None, k_neighbors=5)
+        "HuggingFaceCLIP": CLIP(),
+        "OpenAICLIP": CLIPOpenAI(),
     }
 
 if "GLIP_MODEL" not in st.session_state:
@@ -50,30 +54,35 @@ def read_csv(csv_name):
 
 
 def get_results(
-    df, clip_model, glip_model, query, score_thresh=20.0, top_k=3
+    df, clip_model, glip_model, query, score_thresh=20.0, top_k=5
 ) -> List[Result]:
     results = []
     # use CLIP model to get similarity scores and pick the top_k
     df_output = clip_model.get_similarity_scores(df["image_path"].values, query)
     df_output = df_output.sort_values("score", ascending=False)
-    df_output = df_output[df_output["score"] > score_thresh][:3]
+    df_output = df_output[df_output["score"] > score_thresh]
     # use GLIP model to get bounding boxes
     for _, row in df_output.iterrows():
         image = read_image(row["image_path"])
         if glip_model is not None:
             glip_prediction = glip_model.predict(image, query)
+            if glip_prediction.n == 0:
+                continue
         else:
             glip_prediction = None
         result = Result(image, row["score"], glip_prediction)
         results.append(result)
+        if len(results) >= top_k:
+            break
     return results
 
 
 def show_results(results: List[Result], time_elapsed, top_k=3):
     top_k = min(top_k, len(results))
     st.write(
-        f"Found {len(results)} results in {time_elapsed:.2f} seconds. Showing top {top_k} results below: " 
+        f"Found {len(results)} results in {time_elapsed:.2f} seconds. Showing top {top_k} results below: "
     )
+    count = 0
     for result in results:
         image = result.image
         if result.glip_prediction is not None:
@@ -93,6 +102,9 @@ def show_results(results: List[Result], time_elapsed, top_k=3):
             channels="RGB",
             output_format="auto",
         )
+        count += 1
+        if count >= top_k:
+            break
 
 
 def main():

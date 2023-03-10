@@ -3,7 +3,7 @@ import fire
 import os
 import pandas as pd
 
-from clip_model import CLIP, CLIPOpenAI
+from clip_model import CLIP, CLIPOpenAI, CLIPOpenAIFaiss
 
 try:
     from glip import GLIP
@@ -21,6 +21,8 @@ DATA_SELECTION = {
     100: "0100_samples.csv",
     500: "0500_samples.csv",
     1000: "1000_samples.csv",
+    5000: "05000_samples.csv",
+    10000: "10000_samples.csv",
 }
 
 
@@ -31,6 +33,10 @@ class BenchmarkLatency:
         self.n_runs = n_runs
         self.queries = self._read_queries()
         self.models = {
+            "OpenAICLIP-FasterImage+FAISS": {
+                "model": CLIPOpenAIFaiss,
+                "args": [INDEX_LOOKUP_FILE, None, 5],
+            },
             "OpenAICLIP-FasterImage": {
                 "model": CLIPOpenAI,
                 "args": [INDEX_LOOKUP_FILE],

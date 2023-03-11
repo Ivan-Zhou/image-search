@@ -33,28 +33,28 @@ class BenchmarkLatency:
         self.n_runs = n_runs
         self.queries = self._read_queries()
         self.models = {
-            "OpenAICLIP-FasterImage+FAISS": {
-                "model": CLIPOpenAIFaiss,
-                "args": [INDEX_LOOKUP_FILE, None, 5],
-            },
-            "OpenAICLIP-FasterImage": {
-                "model": CLIPOpenAI,
-                "args": [INDEX_LOOKUP_FILE],
-            },
+            # "OpenAICLIP-FasterImage+FAISS": {
+            #     "model": CLIPOpenAIFaiss,
+            #     "args": [INDEX_LOOKUP_FILE, None, 5],
+            # },
+            # "OpenAICLIP-FasterImage": {
+            #     "model": CLIPOpenAI,
+            #     "args": [INDEX_LOOKUP_FILE],
+            # },
             "OpenAICLIP": {
                 "model": CLIPOpenAI,
                 "args": [],
             },
-            "HuggingFaceCLIP": {
-                "model": CLIP,
-                "args": [],
-            },
+            # "HuggingFaceCLIP": {
+            #     "model": CLIP,
+            #     "args": [],
+            # },
         }
-        if imported_glip:
-            self.models["GLIP"] = {
-                "model": GLIP,
-                "args": [],
-            }
+        # if imported_glip:
+        #     self.models["GLIP"] = {
+        #         "model": GLIP,
+        #         "args": [],
+        #     }
         self.data = []
         self.output_file = "latency_benchmark.csv"
 
@@ -78,7 +78,13 @@ class BenchmarkLatency:
         for model_name, model_config in self.models.items():
             model = model_config["model"](*model_config["args"])
             print(f"Running benchmark for {model_name}...")
-            for query in self.queries:
+            # warm up
+            try:
+                self._run_model(model_name, model, self.queries[0])
+            except Exception as e:
+                print(f"Failed to run model {model_name} due to {e}")
+            for i, query in enumerate(self.queries):
+                print(f"Running query {i + 1}/{self.n_queries}...")
                 start = datetime.now()
                 for _ in range(self.n_runs):
                     try:
@@ -86,8 +92,8 @@ class BenchmarkLatency:
                     except Exception as e:
                         print(f"Failed to run model {model_name} due to {e}")
                 time = (datetime.now() - start).total_seconds()
-                time_per_image = time / (n_images * self.n_runs)
-                self._record(model_name, query, time_per_image)
+                time_per_image = time / self.n_runs
+                self._record(model_name, query, n_images, time_per_image)
             print(f"Finished benchmark for {model_name}...")
 
     def _run_model(self, model_name, model, query):
@@ -100,12 +106,13 @@ class BenchmarkLatency:
         else:
             raise ValueError(f"Model {model_name} not supported")
 
-    def _record(self, model_name, query, time):
+    def _record(self, model_name, query, n_images, time):
         query = query.replace("\n", "")
         self.data.append(
             {
                 "model": model_name,
                 "query": query,
+                "n_images": n_images,
                 "time": time,
             }
         )

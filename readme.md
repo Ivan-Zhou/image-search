@@ -1,8 +1,9 @@
 # Image Search
 ## Installation
+### General Requirements
 Create a Conda environment and install the required packages:
 ```
-conda create -n cs324 python=3.10
+conda create -n image-search python=3.10
 pip install -r requirements.txt
 ```
 
@@ -12,9 +13,8 @@ For example, I installed torch-1.13.1+cu116 torchaudio-0.13.1+cu116 torchvision-
 pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu116
 ```
 
-Install faiss from conda-forge ([details](https://github.com/facebookresearch/faiss/blob/main/INSTALL.md#installing-from-conda-forge)) for faster vector distance search.
-
-**Note: Feel free to skip this installation. Still exploring. Not in the current implementation.**
+### Install FAISS
+Install faiss from conda-forge ([details](https://github.com/facebookresearch/faiss/blob/main/INSTALL.md#installing-from-conda-forge)) for 100x faster vector distance search.
 
 ```
 # CPU version
@@ -25,6 +25,9 @@ $ conda install -c conda-forge faiss-gpu
 ```
 
 ### Install GLIP
+We found GLIP helpful at improving the precision of image search, but it is optional. You can launch this app without intalling GLIP.
+GLIP has strict requirements on the environment (e.g. PyTorch 1.9.1 and CUDA 11.1).
+
 Pull the submodule:
 ```
 git submodule update --init --recursive
@@ -36,29 +39,47 @@ sh .install_glip.sh
 ```
 
 ## Run a local app
+### Launch the app
 The local app is a simple web app that allows you to select a dataset and type a query to search:
 
 ![Local app](resources/app_screenshot.png)
 
 Before you run the app, make sure you've prepared the dataset and set up the right path with `DATA_DIR` variable in `app/constants.py`.
 
-Run indexer first for faster image feature retrieval:
-```
-python app/indexer.py
-```
-
 You can run the local app by executing the following command:
 ```
 sh execute.sh
 ```
 
+### Optimized Implementation
+Run indexer first for faster image feature retrieval:
+```
+python app/indexer.py
+```
 
-## Performance Findings
+## Benchmarks
+### Performance
+We evaluated the performance of both systems using 20 image search queries. First, we generated candidate queries with ChatGPT, and then hand-picked the ones that were suitable.
+We report the performance metrics of the CLIP and CLIP+GLIP systems in the table below.
 
+| Metric               | CLIP  | CLIP+GLIP |
+| -------------------- | ----- | --------- |
+| Precision            | 0.567 | 0.685     |
+| Mean Reciprocal Rank | 0.775 | 0.778     |
+| Average Precision    | 0.639 | 0.719     |
 
-| Model                           | Search Time (sec) | Image Sample Size | Device            |
-| ------------------------------- | ----------------- | ----------------- | ----------------- |
-| HuggingFace CLIP                | 6.49              | 100               | MacBook Pro - CPU |
-| OpenAI CLIP                     | 3.35              | 100               | MacBook Pro - CPU |
-| OpenAI CLIP - FasterImage       | 0.4               | 100               | MacBook Pro - CPU |
-| OpenAI CLIP - FasterImage+FAISS | 0.05              | 100               | MacBook Pro - CPU |
+### Latency
+We benchmarked the latency of image search with different models, hardware, and image sample size. The results are shown below.
+To ensure stable measurements, we prepared 10 search queries and ran each query 3 times. We then calculated the average latency required to search through the entire image set per query.
+
+| Model                              | Search Time (sec) | Image Sample Size | Device            |
+| ---------------------------------- | ----------------- | ----------------- | ----------------- |
+| CLIP (HuggingFace)                 | 6.49              | 100               | MacBook Pro - CPU |
+| CLIP (OpenAI)                      | 3.35              | 100               | MacBook Pro - CPU |
+| CLIP (OpenAI) - with Index         | 0.40              | 100               | MacBook Pro - CPU |
+| CLIP (OpenAI) - with Index + FAISS | 0.05              | 100               | MacBook Pro - CPU |
+| CLIP (OpenAI)                      | 0.92              | 100               | Nvidia P100       |
+| CLIP (OpenAI) - with Index         | 0.16              | 100               | Nvidia P100       |
+| CLIP (OpenAI) - with Index + FAISS | 0.0073            | 1000              | Nvidia P100       |
+| CLIP (OpenAI) - with Index + FAISS | 0.0085            | 10000             | Nvidia P100       |
+| GLIP                               | 0.418             | 1                 | Nvidia P100       |

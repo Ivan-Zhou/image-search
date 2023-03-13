@@ -9,7 +9,6 @@ try:
 
     imported_glip = True
 except Exception as e:
-    print("Failed to import GLIP due to {}".format(e))
     imported_glip = False
 from visualization import read_image, plot_bboxes
 from datetime import datetime
@@ -79,9 +78,7 @@ def get_results(
 
 def show_results(results: List[Result], time_elapsed, top_k=3):
     top_k = min(top_k, len(results))
-    st.write(
-        f"Found {len(results)} results in {time_elapsed:.2f} seconds. Showing top {top_k} results below: "
-    )
+    st.write(f"Found {len(results)} results. Showing top {top_k} results below: ")
     count = 0
     for result in results:
         image = result.image

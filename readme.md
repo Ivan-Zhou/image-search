@@ -1,4 +1,6 @@
-# Image Search
+# Fast and Easy Image Search
+Develope an image search application that uses multimodal foundation models to search for highly accurate and relevant results instantly.
+
 ## Installation
 ### General Requirements
 Create a Conda environment and install the required packages:
@@ -41,6 +43,12 @@ sh .install_glip.sh
 ## Run a local app
 Here is the system design of the image search app:
 ![System Design](resources/system_design.png)
+
+### Data
+You can try searching with your own photos. That will be more fun! If you don’t have images to try on. I prepared a subset of ImageNet with 10,000 samples. You can download them [here](https://drive.google.com/file/d/1VfVpZ-Lrpx853WaoVtBygruOfLQGKODi/view?usp=share_link).
+
+We manage the paths to the data directory and indexed file path in `app/constants.py`. You can change the paths to your own data directory and indexed file path.
+
 ### Launch the app
 The local app is a simple web app that allows you to select a dataset and type a query to search:
 

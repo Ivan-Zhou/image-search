@@ -20,10 +20,10 @@ Install faiss from conda-forge ([details](https://github.com/facebookresearch/fa
 
 ```
 # CPU version
-$ conda install -c conda-forge faiss-cpu
+conda install -c conda-forge faiss-cpu
 
 # GPU version
-$ conda install -c conda-forge faiss-gpu
+conda install -c conda-forge faiss-gpu
 ```
 
 ### Install GLIP
@@ -81,12 +81,14 @@ We report the performance metrics of the CLIP and CLIP+GLIP systems in the table
 ### Latency
 We conducted a benchmark study to measure the latency of image search using different implementations, hardware, and image sample sizes. The results are presented below. To ensure stable measurements, we prepared 10 search queries and ran each query three times. We then calculated the average latency required to search through the entire image set per query.
 
-| Model              | Search Time (sec) | Image Sample Size | Device            |
-| ------------------ | ----------------- | ----------------- | ----------------- |
-| CLIP (HuggingFace) | 6.49              | 100               | MacBook Pro - CPU |
-| CLIP (OpenAI)      | 3.35              | 100               | MacBook Pro - CPU |
-| CLIP (Optimized)   | 0.05              | 100               | MacBook Pro - CPU |
-| CLIP (OpenAI)      | 0.92              | 100               | Nvidia P100       |
-| CLIP (Optimized)   | 0.0073            | 1000              | Nvidia P100       |
-| CLIP (Optimized)   | 0.0085            | 10000             | Nvidia P100       |
-| GLIP               | 0.418             | 1                 | Nvidia P100       |
+| Model            | Search Time (sec) | Image Sample Size | Device             |
+| ---------------- | ----------------- | ----------------- | ------------------ |
+| CLIP (OpenAI)    | 15.751            | 1000              | MacBook Pro M1 Max |
+| CLIP (Optimized) | 0.035             | 1000              | MacBook Pro M1 Max |
+| CLIP (OpenAI)    | 4.287             | 1000              | A4000 GPU          |
+| CLIP (Optimized) | 0.005             | 1000              | A4000 GPU          |
+| CLIP (Optimized) | 0.0076            | 10000             | A4000 GPU          |
+| CLIP (OpenAI)    | 8.660             | 1000              | Nvidia P100        |
+| CLIP (Optimized) | 0.0073            | 1000              | Nvidia P100        |
+| CLIP (Optimized) | 0.0085            | 10000             | Nvidia P100        |
+| GLIP             | 0.418             | 1                 | Nvidia P100        |

@@ -10,4 +10,5 @@ ftfy
 regex
 tqdm
 fire
+opencv-python
 git+https://github.com/openai/CLIP.git
